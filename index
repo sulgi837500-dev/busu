@@ -1,0 +1,805 @@
+<!-- 부수 한 걸음 — 한문 부수 수행평가 대비 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>부수 한 걸음</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Gowun+Batang:wght@400;700&family=Jua&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7EEDA;        /* 한지 */
+  --paper-2:#FCF6E9;
+  --ink:#20242F;          /* 먹 */
+  --ink-soft:#4A4E5A;
+  --seal:#C8322B;         /* 인주(도장) 붉은색 — 시그니처 */
+  --seal-deep:#9E241F;
+  --celadon:#2F8E7B;      /* 청자 — 정답 */
+  --celadon-deep:#216456;
+  --ochre:#E0A128;        /* 연속·경험치 */
+  --line:#E4D6B8;
+  --wrong:#C8322B;
+  --shadow:0 10px 30px rgba(32,36,47,.14);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Gowun Batang','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(200,50,43,.05), transparent 40%),
+    radial-gradient(circle at 88% 92%, rgba(47,142,123,.05), transparent 42%),
+    var(--paper);
+  min-height:100vh;
+}
+.serif{font-family:'Nanum Myeongjo','Gowun Batang',serif}
+.hanja{font-family:'Nanum Myeongjo',serif;font-weight:800;letter-spacing:.02em}
+button{font-family:inherit;cursor:pointer;border:none;background:none}
+#app{max-width:480px;margin:0 auto;min-height:100vh;padding:0 18px 40px;display:flex;flex-direction:column}
+
+/* ---------- 상단 바 ---------- */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 2px 6px;position:sticky;top:0;z-index:20;
+  background:linear-gradient(var(--paper) 68%, transparent);}
+.brand{display:flex;align-items:center;gap:9px;font-family:'Jua',sans-serif;font-size:19px;color:var(--ink)}
+.brand .seal-mini{width:30px;height:30px;border-radius:7px;background:var(--seal);color:#fff;display:grid;place-items:center;
+  font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:17px;box-shadow:0 3px 0 var(--seal-deep);transform:rotate(-3deg)}
+.stats{display:flex;gap:10px;align-items:center}
+.chip{display:flex;align-items:center;gap:5px;font-family:'Jua',sans-serif;font-size:15px;padding:5px 11px;border-radius:999px;
+  background:var(--paper-2);border:1.5px solid var(--line)}
+.chip.flame{color:var(--ochre)} .chip.xp{color:var(--celadon-deep)}
+
+/* ---------- 홈 ---------- */
+.hero{margin-top:8px;text-align:center;padding:14px 0 4px}
+.hero .kanji-mark{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:15px;color:var(--seal);letter-spacing:.5em;margin-left:.5em}
+.hero h1{font-family:'Jua',sans-serif;font-weight:400;font-size:26px;margin:6px 0 2px}
+.hero p{margin:0;color:var(--ink-soft);font-size:14px}
+
+.goal-card{margin-top:16px;background:var(--paper-2);border:2px solid var(--line);border-radius:22px;padding:20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.goal-card:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 22px,rgba(228,214,184,.35) 22px 23px);pointer-events:none;opacity:.5}
+.goal-head{display:flex;justify-content:space-between;align-items:baseline;position:relative}
+.goal-head .t{font-family:'Jua',sans-serif;font-size:18px}
+.goal-head .n{font-size:13px;color:var(--ink-soft)}
+.dots{display:flex;gap:10px;margin:16px 0 4px;position:relative}
+.dot{flex:1;height:12px;border-radius:999px;background:var(--line);position:relative;overflow:hidden}
+.dot.done{background:var(--celadon)}
+.dot .fill{position:absolute;inset:0;background:var(--celadon);transform-origin:left;transition:transform .5s}
+
+.btn{display:block;width:100%;text-align:center;font-family:'Jua',sans-serif;font-size:19px;color:#fff;
+  background:var(--seal);border-radius:18px;padding:17px;box-shadow:0 5px 0 var(--seal-deep);transition:transform .05s, box-shadow .05s;margin-top:18px}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--seal-deep)}
+.btn.green{background:var(--celadon);box-shadow:0 5px 0 var(--celadon-deep)}
+.btn.green:active{box-shadow:0 1px 0 var(--celadon-deep)}
+.btn.ghost{background:var(--paper-2);color:var(--ink);border:2px solid var(--line);box-shadow:0 4px 0 var(--line)}
+.btn.ghost:active{box-shadow:0 1px 0 var(--line)}
+.btn.small{font-size:16px;padding:13px}
+.btn[disabled]{opacity:.5;box-shadow:none;pointer-events:none;transform:none}
+
+.row2{display:flex;gap:12px;margin-top:14px}
+.row2 .btn{margin-top:0}
+
+.mini-nav{display:flex;gap:10px;margin-top:20px}
+.mini-nav button{flex:1;background:var(--paper-2);border:2px solid var(--line);border-radius:16px;padding:13px 6px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;font-family:'Jua',sans-serif;font-size:13px;color:var(--ink)}
+.mini-nav button .ic{font-size:20px}
+
+.tip{margin-top:20px;background:linear-gradient(var(--paper-2),var(--paper-2)) padding-box, var(--paper);
+  border:2px dashed var(--line);border-radius:16px;padding:14px 16px;font-size:14px;color:var(--ink-soft);line-height:1.6}
+.tip b{color:var(--seal)}
+
+/* ---------- 학습(퀴즈) ---------- */
+.session-top{display:flex;align-items:center;gap:12px;padding:14px 2px 4px;position:sticky;top:0;z-index:10;background:var(--paper)}
+.xbtn{font-size:22px;color:var(--ink-soft);line-height:1;padding:2px 6px}
+.pbar{flex:1;height:14px;background:var(--line);border-radius:999px;overflow:hidden}
+.pbar .p{height:100%;background:var(--celadon);border-radius:999px;transition:width .35s}
+.hearts{display:flex;gap:2px;font-size:16px}
+
+.q-wrap{flex:1;display:flex;flex-direction:column;padding-top:10px;animation:qin .3s ease}
+@keyframes qin{from{opacity:0;transform:translateX(18px)}to{opacity:1;transform:none}}
+.q-kind{font-family:'Jua',sans-serif;font-size:15px;color:var(--seal);margin:6px 0 2px}
+.q-prompt{font-size:16px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5}
+
+.stage{background:var(--paper-2);border:2px solid var(--line);border-radius:22px;padding:26px 18px;text-align:center;box-shadow:var(--shadow);position:relative}
+.stage .big-hanja{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:56px;line-height:1.15;color:var(--ink)}
+.stage .reading{margin-top:8px;font-size:16px;color:var(--ink-soft);letter-spacing:.15em}
+.stage .big-mean{font-size:22px;font-weight:700;line-height:1.5}
+.stage .prompt-blank{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:48px;letter-spacing:.05em}
+.stage .blank{color:var(--seal);border-bottom:4px solid var(--seal)}
+
+.choices{display:flex;flex-direction:column;gap:11px;margin-top:20px}
+.choice{width:100%;text-align:left;background:var(--paper-2);border:2px solid var(--line);border-radius:16px;
+  padding:16px 18px;font-size:17px;color:var(--ink);box-shadow:0 4px 0 var(--line);transition:transform .05s,box-shadow .05s;display:flex;align-items:center;gap:12px}
+.choice .idx{font-family:'Jua',sans-serif;font-size:13px;width:24px;height:24px;border-radius:7px;background:var(--paper);
+  border:1.5px solid var(--line);display:grid;place-items:center;color:var(--ink-soft);flex-shrink:0}
+.choice .ch-hanja{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:22px}
+.choice:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.choice.correct{background:#E7F3EF;border-color:var(--celadon);box-shadow:0 4px 0 var(--celadon-deep);color:var(--celadon-deep)}
+.choice.correct .idx{background:var(--celadon);color:#fff;border-color:var(--celadon)}
+.choice.wrong{background:#FBE9E8;border-color:var(--seal);box-shadow:0 4px 0 var(--seal-deep);color:var(--seal-deep)}
+.choice.wrong .idx{background:var(--seal);color:#fff;border-color:var(--seal)}
+.choice.dim{opacity:.45}
+.choice[disabled]{pointer-events:none}
+
+/* 조합(순서 맞추기) */
+.assemble-answer{min-height:70px;border:2px dashed var(--line);border-radius:16px;margin-top:18px;padding:12px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;background:var(--paper-2)}
+.assemble-answer:empty:before{content:"여기에 순서대로 배열하세요";color:var(--ink-soft);font-size:14px;opacity:.7}
+.assemble-bank{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:16px}
+.tile{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:30px;background:var(--paper-2);border:2px solid var(--line);
+  border-radius:14px;padding:10px 16px;box-shadow:0 4px 0 var(--line);min-width:56px}
+.tile:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.tile.used{opacity:.28;pointer-events:none}
+.tile.in-answer{background:#fff}
+
+/* 피드백 바 */
+.feedback{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:18px 18px 26px;
+  transform:translateY(110%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.feedback.show{transform:none}
+.feedback .inner{max-width:480px;margin:0 auto}
+.feedback.ok{background:#E2F1EC;border-top:3px solid var(--celadon)}
+.feedback.no{background:#FBE7E5;border-top:3px solid var(--seal)}
+.fb-title{font-family:'Jua',sans-serif;font-size:19px;display:flex;align-items:center;gap:8px}
+.feedback.ok .fb-title{color:var(--celadon-deep)} .feedback.no .fb-title{color:var(--seal-deep)}
+.fb-body{font-size:14.5px;color:var(--ink-soft);margin-top:6px;line-height:1.6}
+.fb-body .hj{font-family:'Nanum Myeongjo',serif;font-weight:800;color:var(--ink)}
+.feedback .btn{margin-top:14px}
+
+/* ---------- 결과 ---------- */
+.result{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:30px 0;animation:qin .4s}
+.seal-stamp{width:120px;height:120px;border-radius:20px;background:var(--seal);color:#fff;display:grid;place-items:center;
+  font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:44px;box-shadow:0 8px 0 var(--seal-deep);transform:rotate(-5deg);
+  animation:stamp .5s cubic-bezier(.2,1.4,.4,1);margin-bottom:8px;line-height:1.1;text-align:center}
+@keyframes stamp{0%{transform:scale(2.4) rotate(-18deg);opacity:0}60%{transform:scale(.9) rotate(-5deg);opacity:1}100%{transform:scale(1) rotate(-5deg)}}
+.result h2{font-family:'Jua',sans-serif;font-size:26px;margin:14px 0 4px}
+.result .sub{color:var(--ink-soft);margin-bottom:22px}
+.score-grid{display:flex;gap:12px;width:100%;margin-bottom:8px}
+.score-box{flex:1;background:var(--paper-2);border:2px solid var(--line);border-radius:18px;padding:16px 8px}
+.score-box .v{font-family:'Jua',sans-serif;font-size:26px}
+.score-box .l{font-size:13px;color:var(--ink-soft);margin-top:2px}
+.score-box.a .v{color:var(--celadon-deep)} .score-box.b .v{color:var(--ochre)} .score-box.c .v{color:var(--seal)}
+
+/* ---------- 진도 / 사전 ---------- */
+.screen-title{font-family:'Jua',sans-serif;font-size:22px;margin:6px 0 2px;display:flex;align-items:center;gap:8px}
+.screen-sub{color:var(--ink-soft);font-size:14px;margin-bottom:16px}
+.unit-block{margin-bottom:20px}
+.unit-name{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:16px;color:var(--seal);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.lesson-card{background:var(--paper-2);border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px}
+.lesson-card .num{font-family:'Jua',sans-serif;font-size:15px;width:38px;height:38px;border-radius:11px;background:var(--paper);border:2px solid var(--line);display:grid;place-items:center;flex-shrink:0}
+.lesson-card.mastered .num{background:var(--seal);color:#fff;border-color:var(--seal)}
+.lesson-card .info{flex:1;min-width:0}
+.lesson-card .info .lt{font-weight:700;font-size:15px}
+.lesson-card .info .lc{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+.mbar{height:8px;background:var(--line);border-radius:999px;overflow:hidden;margin-top:7px}
+.mbar .m{height:100%;background:var(--celadon);border-radius:999px}
+.lesson-card .go{font-family:'Jua',sans-serif;font-size:13px;color:#fff;background:var(--celadon);border-radius:10px;padding:8px 12px;box-shadow:0 3px 0 var(--celadon-deep);flex-shrink:0}
+.lesson-card .go:active{transform:translateY(2px);box-shadow:0 1px 0 var(--celadon-deep)}
+
+.dict-tabs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
+.dict-tab{font-family:'Jua',sans-serif;font-size:13.5px;white-space:nowrap;padding:8px 14px;border-radius:999px;background:var(--paper-2);border:2px solid var(--line);color:var(--ink-soft)}
+.dict-tab.on{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.dict-item{background:var(--paper-2);border:2px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:9px;display:flex;gap:14px;align-items:center}
+.dict-item .dh{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:28px;flex-shrink:0;min-width:56px;text-align:center}
+.dict-item .dr{font-size:12.5px;color:var(--seal);letter-spacing:.1em}
+.dict-item .dm{font-size:14.5px;margin-top:2px;line-height:1.4}
+.dict-item .star{margin-left:auto;font-size:18px;color:var(--line);flex-shrink:0}
+.dict-item .star.on{color:var(--ochre)}
+
+/* ---------- 온보딩 / 범위 선택 ---------- */
+.ob{padding-top:20px;animation:qin .4s}
+.ob h1{font-family:'Jua',sans-serif;font-size:24px;text-align:center;margin:10px 0 4px}
+.ob p.lead{text-align:center;color:var(--ink-soft);font-size:14px;margin:0 0 18px;line-height:1.6}
+.scope-unit{border:2px solid var(--line);border-radius:16px;margin-bottom:11px;overflow:hidden;background:var(--paper-2)}
+.scope-unit .uhead{display:flex;align-items:center;gap:12px;padding:14px 16px}
+.scope-unit .uhead .cbx{width:26px;height:26px;border-radius:8px;border:2.5px solid var(--line);flex-shrink:0;display:grid;place-items:center;font-size:16px;color:#fff;background:var(--paper)}
+.scope-unit.on .uhead .cbx{background:var(--seal);border-color:var(--seal)}
+.scope-unit .uhead .un{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:15px}
+.scope-unit .uhead .us{font-size:12px;color:var(--ink-soft);margin-top:1px}
+.scope-unit .uhead .rn{margin-left:auto;font-family:'Nanum Myeongjo',serif;font-weight:800;color:var(--seal);font-size:15px}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(120%);background:var(--ink);color:var(--paper);
+  padding:12px 20px;border-radius:14px;font-family:'Jua',sans-serif;font-size:14px;z-index:50;transition:transform .3s;box-shadow:var(--shadow)}
+.toast.show{transform:translateX(-50%)}
+.hidden{display:none!important}
+.center-note{text-align:center;color:var(--ink-soft);font-size:14px;padding:40px 0;line-height:1.7}
+
+/* 배우기 카드 / 플래시카드 */
+.stage.learn{border-color:var(--seal);border-style:solid}
+.learn-badge{display:inline-block;font-family:'Jua',sans-serif;font-size:12px;color:#fff;background:var(--seal);border-radius:999px;padding:3px 12px;margin-bottom:14px}
+.learn-reading{font-family:'Nanum Myeongjo',serif;font-weight:700;font-size:26px;color:var(--seal);letter-spacing:.15em;margin-top:12px}
+.learn-mean{font-size:19px;font-weight:700;margin-top:10px;line-height:1.5}
+.learn-hint{font-size:14px;color:var(--ink-soft);margin-top:14px;line-height:1.65;border-top:1.5px dashed var(--line);padding-top:12px}
+
+.flash-chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px}
+.flash-card{background:var(--paper-2);border:2px solid var(--line);border-radius:24px;padding:38px 20px;text-align:center;
+  box-shadow:var(--shadow);min-height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.flash-type{position:absolute;top:14px;left:16px;font-family:'Jua',sans-serif;font-size:12px;color:var(--seal);
+  background:var(--paper);border:1.5px solid var(--line);border-radius:999px;padding:3px 11px}
+.flash-star{position:absolute;top:11px;right:14px;font-size:23px;color:var(--line);background:none}
+.flash-star.on{color:var(--ochre)}
+.flash-hanja{font-family:'Nanum Myeongjo',serif;font-weight:800;line-height:1.12}
+.flash-reading{font-family:'Nanum Myeongjo',serif;font-weight:700;font-size:30px;color:var(--seal);letter-spacing:.15em;margin-top:16px}
+.flash-mean{font-size:21px;font-weight:700;margin-top:12px;line-height:1.5}
+.flash-hint{font-size:14px;color:var(--ink-soft);margin-top:16px;line-height:1.65;border-top:1.5px dashed var(--line);padding-top:14px;max-width:340px}
+.flash-tap{font-size:14px;color:var(--ink-soft);opacity:.75;margin-top:22px}
+.flash-nav{display:flex;gap:10px;align-items:center;margin-top:16px}
+.flash-nav .navb{margin-top:0}
+.flash-count{font-family:'Jua',sans-serif;font-size:15px;color:var(--ink-soft);min-width:62px;text-align:center}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--paper-2);
+  border:2px solid var(--line);border-radius:16px;padding:14px 16px;margin-top:14px}
+.switch{width:52px;height:30px;border-radius:999px;background:var(--line);position:relative;transition:background .2s;flex-shrink:0}
+.switch.on{background:var(--celadon)}
+.switch .knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.switch.on .knob{left:25px}
+
+/* 도움말 버튼 */
+.chip.help{font-family:'Jua',sans-serif;font-size:16px;width:32px;height:32px;padding:0;border-radius:50%;
+  background:var(--paper-2);border:1.5px solid var(--line);color:var(--ink-soft);
+  display:grid;place-items:center;line-height:1}
+.chip.help:active{transform:translateY(1px)}
+.chip.flame,.chip.xp{cursor:pointer}
+
+/* 기록 달력 */
+.stat-row{display:flex;gap:8px;margin-bottom:16px}
+.stat{flex:1;background:var(--paper-2);border:2px solid var(--line);border-radius:14px;padding:12px 3px;text-align:center}
+.stat .v{font-family:'Jua',sans-serif;font-size:18px} .stat .l{font-size:11px;color:var(--ink-soft);margin-top:3px}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.cal-title{font-family:'Jua',sans-serif;font-size:17px}
+.cal-nav{width:40px;height:40px;border-radius:11px;background:var(--paper-2);border:2px solid var(--line);font-size:22px;color:var(--ink);line-height:1}
+.cal-nav:active{transform:translateY(1px)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-dow{text-align:center;font-size:12px;color:var(--ink-soft);padding:2px 0 4px;font-family:'Jua',sans-serif}
+.cal-dow.sun{color:var(--seal)}
+.cal-day{aspect-ratio:1/1;border-radius:12px;background:var(--paper-2);border:2px solid var(--line);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.cal-day .dn{font-size:14px;color:var(--ink-soft)}
+.cal-day.partial{border-color:var(--ochre);background:#FBF1DA} .cal-day.partial .dn{color:#B9791A;font-weight:700}
+.cal-day.goal{background:var(--seal);border-color:var(--seal);box-shadow:0 3px 0 var(--seal-deep)} .cal-day.goal .dn{color:#fff;font-weight:700}
+.cal-day.goal .dm{position:absolute;bottom:1px;font-family:'Nanum Myeongjo',serif;font-size:9px;color:rgba(255,255,255,.8)}
+.cal-day.today{outline:3px solid var(--celadon);outline-offset:1px}
+.cal-legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin:18px 0;font-size:12.5px;color:var(--ink-soft)}
+.cal-legend span{display:flex;align-items:center;gap:6px}
+.cal-legend .lg{width:15px;height:15px;border-radius:5px;display:inline-block;border:2px solid var(--line);background:var(--paper-2)}
+.cal-legend .lg.goal{background:var(--seal);border-color:var(--seal)}
+.cal-legend .lg.partial{background:#FBF1DA;border-color:var(--ochre)}
+.cal-legend .lg.today{outline:2px solid var(--celadon);outline-offset:1px}
+
+/* 학습 순서 안내 */
+.guide-step{display:flex;gap:14px;align-items:flex-start;background:var(--paper-2);border:2px solid var(--line);border-radius:16px;padding:16px;margin-bottom:11px}
+.guide-step .gn{font-family:'Jua',sans-serif;font-size:17px;width:36px;height:36px;border-radius:11px;background:var(--seal);color:#fff;display:grid;place-items:center;flex-shrink:0;box-shadow:0 3px 0 var(--seal-deep)}
+.guide-step .gc{font-size:14.5px;line-height:1.65;padding-top:4px} .guide-step .gc b{color:var(--seal)}
+.guide-note{background:#EAF3EF;border:2px dashed var(--celadon);border-radius:16px;padding:14px 16px;font-size:13.5px;line-height:1.65;color:var(--ink-soft);margin:6px 0 18px} .guide-note b{color:var(--celadon-deep)}
+</style><style>
+.combo-eq{display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap;margin-top:4px}
+.combo-box{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:36px;background:var(--paper);border:2px solid var(--line);border-radius:12px;min-width:62px;padding:8px 10px}
+.combo-box.q{color:var(--seal);border-color:var(--seal);border-style:dashed}
+.combo-op{font-family:'Jua',sans-serif;font-size:20px;color:var(--ink-soft)}
+.combo-sub{font-size:12px;color:var(--ink-soft);margin-top:8px}
+.exam-sec{font-family:'Jua',sans-serif;font-size:12.5px;color:var(--seal);background:var(--paper-2);border:1.5px solid var(--line);border-radius:999px;padding:3px 12px;display:inline-block;margin-bottom:10px}
+.score-table{width:100%;border-collapse:collapse;margin:16px 0}
+.score-table th,.score-table td{border:2px solid var(--ink);padding:12px;text-align:center;font-family:'Jua',sans-serif;background:var(--paper-2)}
+.score-table th{font-size:15px}.score-table td{font-size:26px}
+.write-card{background:var(--paper-2);border:2px solid var(--line);border-radius:24px;padding:34px 20px;text-align:center;box-shadow:var(--shadow);min-height:270px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.write-prompt{font-size:28px;font-weight:700;line-height:1.45}
+.write-ans{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:74px;color:var(--seal);line-height:1.1}
+.write-tap{font-size:14px;color:var(--ink-soft);opacity:.75;margin-top:22px}
+.grid-rad{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rad-cell{background:var(--paper-2);border:2px solid var(--line);border-radius:12px;padding:10px 4px;text-align:center}
+.rad-cell .rc{font-family:'Nanum Myeongjo',serif;font-weight:800;font-size:25px;line-height:1.1}
+.rad-cell .rr{font-size:11px;color:var(--ink-soft);margin-top:4px}
+.rad-cell .rv{font-size:11px;color:var(--seal);font-family:'Nanum Myeongjo',serif;font-weight:700}
+.rad-cell.mastered{border-color:var(--celadon);background:#EAF3EF}
+.lvl-row{display:flex;gap:9px}
+.lvl{flex:1;background:var(--paper-2);border:2px solid var(--line);border-radius:16px;padding:12px 4px;
+ display:flex;flex-direction:column;align-items:center;gap:3px;box-shadow:0 4px 0 var(--line);transition:transform .05s}
+.lvl .ln{font-family:'Jua',sans-serif;font-size:15px;color:var(--ink)}
+.lvl .ld{font-size:10.5px;color:var(--ink-soft);text-align:center;line-height:1.3}
+.lvl:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
+.lvl.on{background:var(--seal);border-color:var(--seal);box-shadow:0 4px 0 var(--seal-deep)}
+.lvl.on .ln,.lvl.on .ld{color:#fff}
+</style>
+
+<div id="app"></div>
+<script>
+/* 부수 일람표 126자 + 士 */
+const RAD=[
+['人','사람','인','사람','亻'],['冫','얼음','빙','기타',''],['刀','칼','도','기타','刂'],['力','힘','력','사람',''],['口','입','구','사람',''],
+['囗','둘레','위','기타',''],['土','흙','토','자연',''],['夕','저녁','석','자연',''],['大','큰','대','기타',''],['女','여자','녀','사람',''],
+['子','아들','자','사람',''],['宀','집','면','기타',''],['寸','마디','촌','기타',''],['小','작을','소','기타',''],['尸','주검','시','사람',''],
+['山','메','산','자연',''],['川','내','천','자연',''],['工','장인','공','사람',''],['己','몸','기','사람',''],['巾','수건','건','기타',''],
+['干','방패','간','기타',''],['广','집','엄','기타',''],['廴','걸을','인','기타',''],['弓','활','궁','기타',''],['彳','걸을','척','기타',''],
+['心','마음','심','사람','忄'],['手','손','수','사람','扌'],['水','물','수','자연','氵'],['犬','개','견','동물','犭'],['戈','창','과','기타',''],
+['戶','집','호','기타',''],['文','글월','문','기타',''],['斗','말','두','기타',''],['斤','도끼','근','기타',''],['方','모','방','기타',''],
+['日','날','일','자연',''],['曰','가로','왈','기타',''],['月','달','월','자연',''],['木','나무','목','자연',''],['欠','하품','흠','기타',''],
+['止','그칠','지','기타',''],['毛','터럭','모','사람',''],['氏','성씨','씨','사람',''],['火','불','화','자연','灬'],['牛','소','우','동물','牜'],
+['艸','풀','초','자연','艹'],['辵','갈','착','기타','辶'],['玄','검을','현','색깔',''],['玉','구슬','옥','기타',''],['甘','달','감','먹거리',''],
+['生','날','생','기타',''],['用','쓸','용','기타',''],['田','밭','전','자연',''],['疒','병들','녁','기타',''],['白','흰','백','색깔',''],
+['皮','가죽','피','사람',''],['皿','그릇','명','기타',''],['目','눈','목','사람',''],['矛','창','모','기타',''],['矢','화살','시','기타',''],
+['石','돌','석','자연',''],['示','보일','시','기타','礻'],['禾','벼','화','먹거리',''],['穴','구멍','혈','기타',''],['立','설','립','기타',''],
+['衣','옷','의','사람','衤'],['竹','대','죽','먹거리',''],['米','쌀','미','먹거리',''],['糸','실','사','기타',''],['羊','양','양','동물',''],
+['羽','깃','우','기타',''],['耳','귀','이','사람',''],['肉','고기','육','사람','月'],['臣','신하','신','기타',''],['自','스스로','자','기타',''],
+['至','이를','지','기타',''],['臼','절구','구','기타',''],['舌','혀','설','사람',''],['舟','배','주','기타',''],['色','빛깔','색','색깔',''],
+['虍','호랑이','호','동물',''],['虫','벌레','충','동물',''],['血','피','혈','사람',''],['行','다닐','행','기타',''],['見','볼','견','기타',''],
+['角','뿔','각','동물',''],['言','말씀','언','기타',''],['谷','골','곡','자연',''],['豆','콩','두','먹거리',''],['豕','돼지','시','동물',''],
+['貝','조개','패','먹거리',''],['赤','붉을','적','색깔',''],['走','달릴','주','기타',''],['足','발','족','사람',''],['身','몸','신','사람',''],
+['車','수레','거','기타',''],['辛','매울','신','먹거리',''],['酉','술','유','동물',''],['里','마을','리','사람',''],['金','쇠','금','기타',''],
+['長','긴','장','기타',''],['門','문','문','기타',''],['阜','언덕','부','자연','阝'],['雨','비','우','자연',''],['靑','푸를','청','색깔',''],
+['面','낯','면','사람',''],['音','소리','음','기타',''],['頁','머리','혈','사람',''],['風','바람','풍','자연',''],['飛','날','비','기타',''],
+['食','먹을','식','먹거리',''],['首','머리','수','사람',''],['香','향기','향','기타',''],['馬','말','마','동물',''],['骨','뼈','골','사람',''],
+['高','높을','고','기타',''],['鬼','귀신','귀','기타',''],['魚','물고기','어','동물',''],['鳥','새','조','동물',''],['鹿','사슴','록','동물',''],
+['麥','보리','맥','먹거리',''],['黑','검을','흑','색깔',''],['鼻','코','비','사람',''],['齒','이','치','사람',''],['龍','용','룡','동물',''],
+['龜','거북','귀','동물',''],['士','선비','사','사람','']
+];
+/* 결합 한자: [한자,뜻,음,부수들,원리] */
+const COMBO=[
+['休','쉴','휴',['人','木'],'회의'],['吐','토할','토',['口','土'],'형성'],['鳴','울','명',['口','鳥'],'회의'],
+['秋','가을','추',['禾','火'],'회의'],['好','좋을','호',['女','子'],'회의'],['近','가까울','근',['斤','辵'],'형성'],
+['墨','먹','묵',['黑','土'],'회의'],['如','같을','여',['女','口'],'형성'],['明','밝을','명',['日','月'],'회의'],
+['漁','고기잡을','어',['水','魚'],'형성'],['花','꽃','화',['艸','化'],'형성'],['洋','큰바다','양',['水','羊'],'형성'],
+['江','강','강',['水','工'],'형성'],['訪','찾을','방',['言','方'],'형성'],['頭','머리','두',['頁','豆'],'형성']
+];
+/* 한자의 짜임: 상형·지사 */
+const PRINCIPLE={
+ 상형:['人','木','口','鳥','目','心','戶','川'],
+ 지사:['上','下','本','末','寸','甘','一','二']
+};
+/* 한자어: [단어,뜻,짜임] */
+const WORD=[
+['人力','사람(인) 힘(력) — 사람의 힘','수식관계'],
+['人口','사람(인) 입(구) — ①사람의 입 ②사람의 수','수식관계'],
+['山川','산(산) 내(천) — ①산과 내 ②자연 경관','병렬관계'],
+['干戈','방패(간) 창(과) — ①창과 방패 ②무기의 총칭, 전쟁','병렬관계'],
+['玉石','옥(옥) 돌(석) — ①옥과 돌 ②좋은 것과 나쁜 것','병렬관계'],
+['玄米','검을(현) 쌀(미) — 벼의 껍질만 벗기고 쓿지 않은 쌀','수식관계'],
+['白米','흰(백) 쌀(미) — 흰 쌀','수식관계'],
+['山高','산(산) 높다(고) — 산이 높다','주술관계'],
+['高山','높다(고) 산(산) — 높은 산','수식관계'],
+['見金','보다(견) 금(금) — 금을 보다','술목관계'],
+['生食','날(생) 밥(식) — 익히지 않고 날로 먹는 일','수식관계'],
+['高音','높은 소리','수식관계'],
+['魚貝','물고기(어) 조개(패) — 물고기와 조개','병렬관계'],
+['入山','산에 들어가다','술목관계']
+];
+/* 성어: [성어,글자음,풀이,속뜻] */
+const IDIOM=[
+['一石二鳥','일석이조','하나의 돌, 두 마리 새','동시에 두 가지 이득을 봄'],
+['一口二言','일구이언','한 입으로 두 말 함','한 가지 일에 대해 이랬다 저랬다 하며 일관성이 없음'],
+['鳥足之血','조족지혈','새 발의 피','극히 적은 분량'],
+['角者無齒','각자무치','뿔난 놈은 날카로운 이빨이 없다','사람이 여러 가지 복을 겸하지 못함'],
+['言中有骨','언중유골','말 속에 뼈가 있다','예사로운 말 속에 단단한 속뜻이 들어 있음'],
+['走馬看山','주마간산','달리는 말에서 산을 보다','자세히 살피지 않고 대충 보고 지나감'],
+['見金如石','견금여석','황금 보기를 돌 같이 한다','①지나친 욕심을 절제함 ②대의를 위해 부귀영화를 돌보지 않음'],
+['靑黃赤白黑','청황적백흑','다섯 가지 빛깔','푸른·누른·붉은·흰·검은빛의 다섯 가지 색. 여러 가지 빛깔']
+];
+
+/* ---- 항목화 ---- */
+const ITEMS=[];
+RAD.forEach((r,i)=>ITEMS.push({id:'r'+i,t:'rad',c:r[0],m:r[1],s:r[2],cat:r[3],v:r[4]}));
+COMBO.forEach((c,i)=>ITEMS.push({id:'c'+i,t:'combo',c:c[0],m:c[1],s:c[2],parts:c[3],pr:c[4],cat:'결합'}));
+WORD.forEach((w,i)=>ITEMS.push({id:'w'+i,t:'word',c:w[0],m:w[1],st:w[2],cat:'한자어'}));
+IDIOM.forEach((d,i)=>ITEMS.push({id:'i'+i,t:'idiom',c:d[0],s:d[1],m:d[2],hid:d[3],cat:'성어'}));
+const BY={}; ITEMS.forEach(x=>BY[x.id]=x);
+const RADBY={}; ITEMS.filter(x=>x.t==='rad').forEach(x=>RADBY[x.c]=x);
+const CATS=['사람','동물','자연','먹거리','색깔','기타','결합','한자어','성어'];
+const radOf=c=>RADBY[c]?RADBY[c].m+'('+RADBY[c].s+')':c;
+
+/* ---- 상태/저장 ---- */
+const KEY='busu_v1';
+const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate();};
+function freshState(){const p={};ITEMS.forEach(x=>p[x.id]={box:0,due:0,seen:false,taught:false});
+ return {prog:p,streak:0,maxStreak:0,lastDay:null,xp:0,day:todayStr(),sessions:0,onboarded:false,seenGuide:false,history:{},best:0,bestBy:{},level:'normal',scope:CATS.slice()};}
+let S=freshState(), store='mem';
+const hasCloud=(typeof window!=='undefined'&&window.storage&&typeof window.storage.get==='function');
+async function load(){let raw=null;
+ if(hasCloud){try{const r=await window.storage.get(KEY);if(r&&r.value){raw=r.value;store='cloud';}}catch(e){}}
+ if(raw===null){try{const v=localStorage.getItem(KEY);if(v)raw=v;if(store!=='cloud')store='local';}catch(e){}}
+ if(store==='mem'&&hasCloud)store='cloud';
+ else if(store==='mem'){try{localStorage.setItem('__t','1');localStorage.removeItem('__t');store='local';}catch(e){store='mem';}}
+ if(raw){try{S=Object.assign(freshState(),JSON.parse(raw));
+  ITEMS.forEach(x=>{if(!S.prog[x.id])S.prog[x.id]={box:0,due:0,seen:false,taught:false};});
+  if(!S.history)S.history={}; if(!S.scope)S.scope=CATS.slice(); if(S.maxStreak===undefined)S.maxStreak=S.streak||0;
+  if(!S.level)S.level='normal'; if(!S.bestBy)S.bestBy={};
+ }catch(e){}}
+ if(S.day!==todayStr()){S.day=todayStr();S.sessions=0;}}
+async function save(){const d=JSON.stringify(S);
+ if(store==='cloud'){try{await window.storage.set(KEY,d);return;}catch(e){store='local';}}
+ if(store==='local'){try{localStorage.setItem(KEY,d);return;}catch(e){store='mem';}}}
+function markDay(){const t=todayStr();if(S.lastDay!==t){const y=new Date();y.setDate(y.getDate()-1);
+ const ys=y.getFullYear()+'-'+(y.getMonth()+1)+'-'+y.getDate();
+ S.streak=(S.lastDay===ys)?S.streak+1:1;S.lastDay=t;S.maxStreak=Math.max(S.maxStreak||0,S.streak);}}
+
+/* ---- SRS ---- */
+const DELAY=[0,4*36e5,24*36e5,3*24*36e5,7*24*36e5,16*24*36e5];
+const inScope=()=>ITEMS.filter(x=>S.scope.includes(x.cat));
+function upd(id,ok){const p=S.prog[id];p.seen=true;
+ if(ok){p.box=Math.min(5,p.box+1);p.due=Date.now()+DELAY[p.box];S.xp+=10;}
+ else{p.box=Math.max(0,p.box-1);p.due=Date.now()+18e5;S.xp+=3;}}
+const mastery=id=>S.prog[id].box/5;
+function catMastery(cat){const a=ITEMS.filter(x=>x.cat===cat);return a.length?a.reduce((s,x)=>s+mastery(x.id),0)/a.length:0;}
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;};
+const pickN=(cands,not,n)=>{const o=[],u=new Set([not]);for(const v of shuffle(cands)){if(o.length>=n)break;if(!u.has(v)){o.push(v);u.add(v);}}return o;};
+/* 난이도 */
+const LVL={easy:{n:3,name:'쉬움'},normal:{n:4,name:'보통'},hard:{n:5,name:'어려움'}};
+const lv=()=>LVL[S.level]||LVL.normal;
+/* 난이도별 오답 보기: 어려움=같은 갈래 우선(헷갈리게), 쉬움=다른 갈래 우선 */
+function distract(x,pool,mapFn,correct,n){
+ const same=pool.filter(i=>i.cat===x.cat).map(mapFn),diff=pool.filter(i=>i.cat!==x.cat).map(mapFn);
+ const ordered=S.level==='hard'?[...shuffle(same),...shuffle(diff)]
+   :S.level==='easy'?[...shuffle(diff),...shuffle(same)]:shuffle([...same,...diff]);
+ const o=[],u=new Set([correct]);
+ for(const v of ordered){if(o.length>=n)break;if(!u.has(v)){o.push(v);u.add(v);}}
+ return o;}
+
+/* ---- 문제 생성 ---- */
+function kindsFor(x){
+ const L=S.level||'normal';
+ if(x.t==='rad'){
+  if(L==='easy')return ['meaning','term'];
+  const k=['meaning','term']; if(x.v)k.push('v2','v1');
+  if(L==='hard'&&x.v)k.push('v1','v2');
+  return k;}
+ if(x.t==='combo'){
+  if(L==='easy')return ['combo'];
+  if(L==='normal')return ['combo','combo-split','principle'];
+  return ['combo','combo-split','combo-split','principle','principle'];}
+ if(x.t==='word'){
+  if(L==='easy')return ['word-mean'];
+  if(L==='normal')return ['word-mean','word-st'];
+  return ['word-mean','word-st','word-st'];}
+ if(L==='easy')return ['idiom-mean','idiom-term'];
+ if(L==='normal')return ['idiom-mean','idiom-hid','idiom-term','idiom-asm'];
+ return ['idiom-hid','idiom-hid','idiom-asm','idiom-asm','idiom-mean','idiom-term'];
+}
+function makeQ(x,forceKind){
+ const ks=kindsFor(x),kind=forceKind||ks[Math.random()*ks.length|0];
+ const q={item:x,kind,lvl:S.level||'normal'},D=lv().n-1;
+ const rads=ITEMS.filter(i=>i.t==='rad'&&i.id!==x.id),
+       cmb=ITEMS.filter(i=>i.t==='combo'&&i.id!==x.id),
+       wrd=ITEMS.filter(i=>i.t==='word'&&i.id!==x.id),
+       idm=ITEMS.filter(i=>i.t==='idiom'&&i.id!==x.id),
+       vrs=ITEMS.filter(i=>i.v&&i.id!==x.id);
+ if(kind==='meaning'){q.sec='뜻과 음';q.prompt='이 한자(부수)의 뜻과 음은?';q.show='char';
+  const a=x.m+'('+x.s+')';q.answer=a;q.options=shuffle([a,...distract(x,rads,r=>r.m+'('+r.s+')',a,D)]);}
+ else if(kind==='term'){q.sec='한자 쓰기';q.prompt='뜻과 음에 맞는 한자(부수)는?';q.show='mean';
+  q.answer=x.c;q.options=shuffle([x.c,...distract(x,rads,r=>r.c,x.c,D)]);q.big=true;}
+ else if(kind==='v2'){q.sec='변형된 모양';q.prompt='이 한자의 변형된 모양은?';q.show='char';
+  q.answer=x.v;q.options=shuffle([x.v,...pickN(vrs.map(i=>i.v),x.v,D)]);q.big=true;}
+ else if(kind==='v1'){q.sec='원래 모양';q.prompt='이 부수의 원래 모양은?';q.show='variant';
+  q.answer=x.c;q.options=shuffle([x.c,...pickN(vrs.map(i=>i.c),x.c,D)]);q.big=true;}
+ else if(kind==='combo'){q.sec='부수 결합';q.prompt='두 부수를 합하면 어떤 한자가 될까요?';q.show='combo';
+  q.answer=x.c;q.options=shuffle([x.c,...pickN(cmb.map(i=>i.c),x.c,D)]);q.big=true;}
+ else if(kind==='combo-split'){q.sec='부수 결합';q.prompt='이 한자는 어떤 부수로 이루어졌나요?';q.show='char';
+  const mk=i=>i.parts.map(p=>p+'('+(RADBY[p]?RADBY[p].m:'')+')').join(' + ');
+  q.answer=mk(x);q.options=shuffle([mk(x),...pickN(cmb.map(mk),mk(x),D)]);}
+ else if(kind==='principle'){q.sec='한자의 짜임';q.prompt='이 한자를 만든 원리는?';q.show='char';
+  q.options=['상형','지사','회의','형성'];q.answer=x.pr;q.fixed=true;}
+ else if(kind==='word-mean'){q.sec='한자어';q.prompt='이 한자어의 뜻은?';q.show='char';
+  q.answer=x.m;q.options=shuffle([x.m,...pickN(wrd.map(i=>i.m),x.m,D)]);}
+ else if(kind==='word-st'){q.sec='단어의 짜임';q.prompt='이 한자어의 짜임은?';q.show='char';
+  q.options=['수식관계','병렬관계','주술관계','술목관계'];q.answer=x.st;q.fixed=true;}
+ else if(kind==='idiom-mean'){q.sec='성어 풀이';q.prompt='이 성어의 풀이는?';q.show='char';
+  q.answer=x.m;q.options=shuffle([x.m,...pickN(idm.map(i=>i.m),x.m,D)]);}
+ else if(kind==='idiom-hid'){q.sec='성어 속뜻';q.prompt='이 성어의 속뜻은?';q.show='char';
+  q.answer=x.hid;q.options=shuffle([x.hid,...pickN(idm.map(i=>i.hid),x.hid,D)]);}
+ else if(kind==='idiom-term'){q.sec='성어 찾기';q.prompt='풀이에 맞는 성어는?';q.show='mean';
+  q.answer=x.c;q.options=shuffle([x.c,...pickN(idm.map(i=>i.c),x.c,D)]);q.big=true;}
+ else{q.sec='성어 배열';q.prompt='뜻을 보고 순서대로 배열하세요';q.kind='idiom-asm';
+  q.tiles=shuffle([...x.c]);q.answer=x.c;}
+ return q;
+}
+const N=8;
+function buildSession(cat){
+ let pool=cat?ITEMS.filter(x=>x.cat===cat):inScope();
+ if(!pool.length)return [];
+ const now=Date.now();
+ const due=pool.filter(x=>S.prog[x.id].seen&&S.prog[x.id].due<=now).sort((a,b)=>S.prog[a.id].due-S.prog[b.id].due);
+ const fresh=pool.filter(x=>!S.prog[x.id].seen);
+ let p=due.slice(0,5); p=p.concat(fresh.slice(0,Math.max(N-p.length-2,3)));
+ if(p.length<N){const rest=pool.filter(x=>!p.includes(x)).sort((a,b)=>mastery(a.id)-mastery(b.id));p=p.concat(rest.slice(0,N-p.length));}
+ return shuffle(p).slice(0,N).map(x=>makeQ(x));
+}
+/* 실전 모의고사 25문항 — 수행평가 구성 비율 */
+function buildExam(){
+ const R=ITEMS.filter(x=>x.t==='rad'),C=ITEMS.filter(x=>x.t==='combo'),
+       V=ITEMS.filter(x=>x.v),W=ITEMS.filter(x=>x.t==='word'),I=ITEMS.filter(x=>x.t==='idiom');
+ const qs=[];
+ shuffle(C).slice(0,5).forEach(x=>qs.push(makeQ(x,'combo')));
+ shuffle(V).slice(0,2).forEach(x=>qs.push(makeQ(x,'v2')));
+ shuffle(V).slice(0,3).forEach(x=>qs.push(makeQ(x,'v1')));
+ shuffle(R).slice(0,8).forEach(x=>qs.push(makeQ(x,'meaning')));
+ shuffle(R).slice(8,12).forEach(x=>qs.push(makeQ(x,'term')));
+ shuffle(I).slice(0,3).forEach((x,i)=>qs.push(makeQ(x,i%2?'idiom-hid':'idiom-mean')));
+ return qs.slice(0,25);
+}
+</script>
+<script>
+const app=document.getElementById('app');
+let view={name:'home'},sess=null;
+function go(n,d){view={name:n,...(d||{})};render();window.scrollTo(0,0);}
+let toastT;
+function toast(m){let e=document.querySelector('.toast');if(!e){e=document.createElement('div');e.className='toast';document.body.appendChild(e);}
+ e.textContent=m;e.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove('show'),1900);}
+function topbar(){return `<div class="topbar"><div class="brand"><span class="seal-mini">部</span>부수 한 걸음</div>
+ <div class="stats"><span class="chip flame" onclick="toast('🔥 연속 학습일이에요. 매일 하면 하루씩 늘어나요')">🔥 ${S.streak}</span>
+ <span class="chip xp" onclick="toast('◆ 경험치예요. 문제를 풀수록 쌓여요 (정답 +10, 오답 +3)')">◆ ${S.xp}</span>
+ <button class="chip help" onclick="go('guide')">?</button></div></div>`;}
+function render(){ if(S.day!==todayStr()){S.day=todayStr();S.sessions=0;}
+ if(!S.onboarded)return renderGuide(true);
+ ({home:renderHome,session:renderSession,result:renderResult,learn:renderLearn,write:renderWrite,
+   exam:renderSession,examresult:renderExamResult,records:renderRecords,guide:()=>renderGuide(false),
+   list:renderList,scope:renderScope}[view.name]||renderHome)();}
+
+/* 홈 */
+function renderHome(){
+ const pool=inScope(),learned=pool.filter(x=>S.prog[x.id].box>=4).length;
+ const due=pool.filter(x=>S.prog[x.id].seen&&S.prog[x.id].due<=Date.now()).length;
+ const nw=pool.filter(x=>!S.prog[x.id].seen&&!S.prog[x.id].taught).length;
+ app.innerHTML=topbar()+`<div class="hero"><div class="kanji-mark">事必歸正</div>
+  <h1>부수 수행평가 대비</h1><p>하루 10분, 시험 형식 그대로</p></div>
+ <div class="goal-card"><div class="goal-head"><span class="t">오늘 목표</span><span class="n">${Math.min(S.sessions,2)} / 2 세션</span></div>
+  <div class="dots"><div class="dot ${S.sessions>=1?'done':''}"></div><div class="dot ${S.sessions>=2?'done':''}"></div></div>
+  <div style="position:relative;font-size:13.5px;color:var(--ink-soft);margin-top:6px">
+  ${S.sessions>=2?'오늘 목표 달성! 🎉':(due?`복습할 항목 <b style="color:var(--seal)">${due}개</b>가 기다려요`:'새 부수를 만나 볼까요?')}</div></div>
+ <div style="font-family:'Jua',sans-serif;font-size:14px;color:var(--ink-soft);margin:20px 2px 10px">난이도</div>
+ <div class="lvl-row">${Object.keys(LVL).map(k=>`<button class="lvl ${S.level===k?'on':''}" data-k="${k}">
+  <span class="ln">${LVL[k].name}</span><span class="ld">${{easy:'보기 3개 · 갈래 힌트',normal:'보기 4개 · 기본',hard:'보기 5개 · 헷갈리게'}[k]}</span></button>`).join('')}</div>
+ <div style="font-family:'Jua',sans-serif;font-size:14px;color:var(--ink-soft);margin:20px 2px 10px">오늘의 순서</div>
+ <button class="btn ghost" id="b1">① 부수 익히기${nw?` · <span style="color:var(--seal)">새 ${nw}</span>`:' (복습)'}</button>
+ <button class="btn" id="b2" style="margin-top:11px">② 오늘의 문제 · ${S.sessions===0?'1교시':S.sessions===1?'2교시':'추가'} (5분)</button>
+ <button class="btn ghost" id="b3" style="margin-top:11px">③ 한자 쓰기 연습 (종이에 쓰기)</button>
+ <button class="btn green" id="b4" style="margin-top:16px">📝 실전 모의고사 25문항${(S.bestBy&&S.bestBy[S.level])?` · ${LVL[S.level].name} 최고 ${S.bestBy[S.level]}점`:''}</button>
+ <div class="mini-nav"><button id="n1"><span class="ic">🗓️</span>기록</button><button id="n2"><span class="ic">📖</span>부수표</button>
+  <button id="n3"><span class="ic">🗺️</span>진도</button><button id="n4"><span class="ic">⚙️</span>설정</button></div>
+ <div class="tip">시험은 <b>부수 뜻·음 / 변형 모양 / 부수 결합 / 성어</b>에서 나와요. 순서가 헷갈리면 위의 <b onclick="go('guide')" style="cursor:pointer;text-decoration:underline">?</b>를 눌러요.<br>
+ 지금까지 <b>${learned}</b>개를 익힘 단계까지 올렸어요 (전체 ${pool.length}개 중). ✍️</div>`;
+ app.querySelectorAll('.lvl').forEach(b=>b.onclick=async()=>{S.level=b.dataset.k;await save();
+  toast(LVL[S.level].name+' 난이도로 바꿨어요');render();});
+ b1.onclick=()=>go('learn',{cat:'사람',idx:0});b2.onclick=()=>start(null);b3.onclick=()=>go('write',{idx:0,rev:false});
+ b4.onclick=()=>startExam();n1.onclick=()=>go('records');n2.onclick=()=>go('list',{cat:'사람'});
+ n3.onclick=()=>go('scope',{tab:'progress'});n4.onclick=()=>go('scope',{});}
+
+/* 세션 */
+function start(cat){const qs=buildSession(cat);if(!qs.length){toast('학습할 항목이 없어요');return;}
+ const steps=[];qs.forEach(q=>{const p=S.prog[q.item.id];if(!p.seen&&!p.taught)steps.push({kind:'learn',item:q.item});steps.push({kind:'quiz',q});});
+ sess={steps,i:0,correct:0,total:qs.length,done:0,hearts:5,wrong:[],answered:false,cat,exam:false};go('session');}
+function startExam(){const qs=buildExam();
+ sess={steps:qs.map(q=>({kind:'quiz',q})),i:0,correct:0,total:qs.length,done:0,hearts:99,wrong:[],answered:false,exam:true,lvl:S.level};go('exam');}
+function renderSession(){const st=sess.steps[sess.i];
+ app.innerHTML=`<div class="session-top"><button class="xbtn" id="x">✕</button>
+  <div class="pbar"><div class="p" style="width:${Math.round(sess.done/sess.total*100)}%"></div></div>
+  ${sess.exam?`<div class="flash-count">${sess.done+1}/${sess.total}</div>`:`<div class="hearts">${'❤️'.repeat(sess.hearts)}${'🤍'.repeat(Math.max(0,5-sess.hearts))}</div>`}</div>
+  <div class="q-wrap" id="qw"></div>`;
+ x.onclick=()=>{if(confirm('그만둘까요? 진행 상황은 저장돼요.')){save();go('home');}};
+ st.kind==='learn'?learnStep(st.item):drawQ(st.q);}
+function learnStep(x){
+ const label={rad:'새 부수',combo:'새 결합 한자',word:'새 한자어',idiom:'새 성어'}[x.t];
+ qw.innerHTML=`<div class="q-kind">✦ 먼저 배우기</div><div class="q-prompt">눈에 익힌 뒤 문제로 넘어가요</div>
+ <div class="stage learn"><span class="learn-badge">${label}</span>
+  <div class="big-hanja" style="font-size:${x.c.length>=4?40:60}px">${x.c}</div>
+  <div class="learn-reading">${x.t==='rad'?x.m+'('+x.s+')':(x.s||'')}</div>
+  <div class="learn-mean">${x.t==='rad'?(x.v?'변형: '+x.v:'부수'):x.m}</div>
+  ${x.t==='combo'?`<div class="learn-hint">${x.parts.map(p=>p+'('+(RADBY[p]?RADBY[p].m:'')+')').join(' + ')} → ${x.c} · ${x.pr}</div>`:''}
+  ${x.t==='word'?`<div class="learn-hint">짜임: ${x.st}</div>`:''}
+  ${x.t==='idiom'?`<div class="learn-hint">속뜻: ${x.hid}</div>`:''}</div>
+ <button class="btn green" id="ln" style="margin-top:22px">외웠어요, 문제 풀기 →</button>`;
+ ln.onclick=()=>{S.prog[x.id].taught=true;save();next();};}
+function stage(q){const x=q.item,L=q.lvl||'normal';
+ if(q.show==='combo')return `<div class="stage"><div class="combo-eq">
+   <div class="combo-box">${x.parts[0]}</div><span class="combo-op">+</span><div class="combo-box">${x.parts[1]}</div>
+   <span class="combo-op">=</span><div class="combo-box q">?</div></div>
+   ${L==='hard'?'':`<div class="combo-sub">${x.parts.map(p=>radOf(p)).join(' + ')}</div>`}</div>`;
+ if(q.show==='variant')return `<div class="stage"><div class="big-hanja" style="font-size:58px">${x.v}</div>
+   ${L==='hard'?'':`<div class="reading">${x.m}(${x.s})의 변형</div>`}</div>`;
+ if(q.show==='mean')return `<div class="stage"><div class="big-mean">${x.t==='rad'?x.m+'('+x.s+')':x.m}</div>
+   ${L==='easy'&&x.t==='rad'?`<div class="reading">${x.cat} 갈래 부수예요</div>`:''}</div>`;
+ return `<div class="stage"><div class="big-hanja" style="font-size:${x.c.length>=4?38:56}px">${x.c}</div>
+  ${x.t!=='rad'&&x.s&&L!=='hard'?`<div class="reading">${x.s}</div>`:''}
+  ${L==='easy'&&x.t==='rad'?`<div class="reading">${x.cat} 갈래 부수예요</div>`:''}</div>`;}
+function drawQ(q){
+ let h=`<div class="exam-sec">${q.sec} · ${LVL[q.lvl||'normal'].name}</div><div class="q-prompt">${q.prompt}</div>${q.kind==='idiom-asm'?
+  `<div class="stage"><div class="big-mean">${q.item.m}</div><div class="reading">${q.item.s}</div></div>`:stage(q)}`;
+ if(q.kind==='idiom-asm'){h+=`<div class="assemble-answer" id="ans"></div><div class="assemble-bank" id="bank">${
+   q.tiles.map((c,i)=>`<button class="tile" data-i="${i}" data-c="${c}">${c}</button>`).join('')}</div>
+   <button class="btn green" id="ck" disabled style="margin-top:20px">확인</button>`;qw.innerHTML=h;return bindAsm(q);}
+ h+=`<div class="choices">${q.options.map((o,i)=>`<button class="choice" data-o="${encodeURIComponent(o)}">
+  <span class="idx">${i+1}</span><span class="${q.big?'ch-hanja':''}">${o}</span></button>`).join('')}</div>`;
+ qw.innerHTML=h;
+ qw.querySelectorAll('.choice').forEach(b=>b.onclick=()=>{
+  if(sess.answered)return;sess.answered=true;const v=decodeURIComponent(b.dataset.o),ok=v===q.answer;
+  qw.querySelectorAll('.choice').forEach(z=>{z.setAttribute('disabled','');const zv=decodeURIComponent(z.dataset.o);
+   if(zv===q.answer)z.classList.add('correct');else if(z===b)z.classList.add('wrong');else z.classList.add('dim');});
+  finish(q,ok);});}
+function bindAsm(q){let seq=[];
+ const ref=()=>{ans.innerHTML=seq.map((s,i)=>`<button class="tile in-answer" data-p="${i}">${s.c}</button>`).join('');
+  bank.querySelectorAll('.tile').forEach(t=>t.classList.toggle('used',seq.some(s=>s.i==t.dataset.i)));
+  ans.querySelectorAll('.tile').forEach(t=>t.onclick=()=>{if(sess.answered)return;seq.splice(+t.dataset.p,1);ref();});
+  ck.disabled=seq.length!==q.tiles.length;};
+ bank.querySelectorAll('.tile').forEach(t=>t.onclick=()=>{if(sess.answered||seq.some(s=>s.i==t.dataset.i))return;seq.push({i:t.dataset.i,c:t.dataset.c});ref();});
+ ck.onclick=()=>{if(sess.answered)return;sess.answered=true;const ok=seq.map(s=>s.c).join('')===q.answer;
+  ans.style.borderColor=ok?'var(--celadon)':'var(--seal)';ck.classList.add('hidden');finish(q,ok);};ref();}
+function finish(q,ok){upd(q.item.id,ok);sess.done++;save();
+ if(ok)sess.correct++;else{if(!sess.exam)sess.hearts=Math.max(0,sess.hearts-1);sess.wrong.push(q.item);}
+ const hb=document.querySelector('.hearts');if(hb)hb.innerHTML='❤️'.repeat(sess.hearts)+'🤍'.repeat(Math.max(0,5-sess.hearts));
+ fb(q,ok);}
+function fb(q,ok){const x=q.item,old=document.querySelector('.feedback');if(old)old.remove();
+ const d=document.createElement('div');d.className='feedback '+(ok?'ok':'no');
+ let det=x.t==='rad'?`<span class="hj">${x.c}</span> ${x.m}(${x.s})${x.v?` · 변형 <span class="hj">${x.v}</span>`:''}`
+  :x.t==='combo'?`<span class="hj">${x.c}</span> ${x.m}(${x.s}) = ${x.parts.map(p=>p+'('+(RADBY[p]?RADBY[p].m:'')+')').join(' + ')} · ${x.pr}`
+  :x.t==='word'?`<span class="hj">${x.c}</span> ${x.m} · ${x.st}`
+  :`<span class="hj">${x.c}</span> ${x.s} — ${x.m}<br>속뜻: ${x.hid}`;
+ d.innerHTML=`<div class="inner"><div class="fb-title">${ok?'○ '+['잘했어요! ✨','정확해요! 🎯','좋아요! 👏'][Math.random()*3|0]:'✕ 다시 볼까요'}</div>
+  <div class="fb-body">${ok?'':`정답: <b>${q.answer}</b><br>`}${det}</div>
+  <button class="btn ${ok?'green':''}" id="nx">계속</button></div>`;
+ document.body.appendChild(d);requestAnimationFrame(()=>d.classList.add('show'));
+ nx.onclick=()=>{if(d.dataset.used)return;d.dataset.used='1';nx.removeAttribute('id');
+  d.classList.remove('show');setTimeout(()=>d.remove(),250);next();};}
+function next(){sess.i++;sess.answered=false;
+ if(sess.i>=sess.steps.length||(!sess.exam&&sess.hearts<=0))return end();
+ render();const w=document.getElementById('qw');if(w){w.style.animation='none';requestAnimationFrame(()=>w.style.animation='');}}
+async function end(){const failed=!sess.exam&&sess.hearts<=0;
+ if(sess.exam){const sc=Math.round(sess.correct/sess.total*100);const L=sess.lvl||S.level;
+  if(!S.bestBy)S.bestBy={};sess.newBest=sc>(S.bestBy[L]||0);S.bestBy[L]=Math.max(S.bestBy[L]||0,sc);
+  S.best=Math.max(S.best||0,sc);markDay();
+  S.history[S.day]={sessions:S.sessions,goal:S.sessions>=2,exam:sc};await save();return go('examresult');}
+ if(!failed){S.sessions++;markDay();S.history[S.day]={sessions:S.sessions,goal:S.sessions>=2};}
+ await save();go('result',{failed});}
+function renderResult(){const acc=Math.round(sess.correct/sess.total*100),seal=view.failed?'再':acc>=90?'秀':acc>=70?'優':acc>=50?'良':'再';
+ app.innerHTML=topbar()+`<div class="result"><div class="seal-stamp">${seal}</div>
+  <h2>${view.failed?'하트를 다 썼어요':acc>=90?'완벽에 가까워요!':acc>=70?'잘하고 있어요!':'한 걸음 나아갔어요'}</h2>
+  <div class="sub">${view.failed?'잠깐 쉬고 다시 도전해요':'꾸준함이 실력이 됩니다'}</div>
+  <div class="score-grid"><div class="score-box a"><div class="v">${sess.correct}/${sess.total}</div><div class="l">정답</div></div>
+  <div class="score-box b"><div class="v">+${sess.correct*10+(sess.total-sess.correct)*3}</div><div class="l">경험치</div></div>
+  <div class="score-box c"><div class="v">🔥${S.streak}</div><div class="l">연속</div></div></div>
+  ${sess.wrong.length?`<div class="tip" style="text-align:left;width:100%">복습 예약: ${sess.wrong.map(w=>'<span class="serif" style="font-weight:700">'+w.c+'</span>').join(', ')}</div>`:''}
+  <button class="btn green" id="a" style="width:100%">다음 세션 (5분)</button>
+  <button class="btn ghost small" id="h" style="width:100%;margin-top:10px">홈으로</button></div>`;
+ a.onclick=()=>start(sess.cat);h.onclick=()=>go('home');}
+function renderExamResult(){const sc=Math.round(sess.correct/sess.total*100);
+ app.innerHTML=topbar()+`<div class="result"><div class="seal-stamp">${sc>=90?'秀':sc>=70?'優':sc>=50?'良':'再'}</div>
+  <h2>모의고사 끝!</h2><div class="sub">${LVL[sess.lvl||'normal'].name} 난이도 · 실제 수행평가와 같은 구성</div>
+  <table class="score-table"><tr><th>맞은 갯수</th><th>점수</th></tr><tr><td>${sess.correct} / ${sess.total}</td><td>${sc}</td></tr></table>
+  ${sess.newBest?'<div class="sub" style="margin-bottom:6px">🎉 최고 점수 갱신!</div>':`<div class="sub" style="margin-bottom:6px">${LVL[sess.lvl||'normal'].name} 최고 ${S.bestBy[sess.lvl||'normal']}점</div>`}
+  ${sc>=90&&(sess.lvl||'normal')!=='hard'?`<div class="tip">잘하네요! <b>난이도를 한 단계 올려</b> 도전해 볼까요?</div>`:''}
+  ${sess.wrong.length?`<div class="tip" style="text-align:left;width:100%">틀린 항목 (복습 예약됨)<br>${sess.wrong.map(w=>`<b class="serif">${w.c}</b> ${w.t==='rad'?w.m+'('+w.s+')':w.m}`).join('<br>')}</div>`:'<div class="tip">전부 정답이에요! 대단해요 🎉</div>'}
+  <button class="btn green" id="a" style="width:100%">다시 풀기</button>
+  <button class="btn ghost small" id="h" style="width:100%;margin-top:10px">홈으로</button></div>`;
+ a.onclick=()=>startExam();h.onclick=()=>go('home');}
+</script>
+<script>
+/* 부수 익히기 (플래시카드) */
+function catItems(c){return ITEMS.filter(x=>x.cat===c);}
+function renderLearn(){
+ const cat=view.cat||'사람',deck=catItems(cat),idx=Math.max(0,Math.min(view.idx||0,deck.length-1)),x=deck[idx];
+ const rev=!view.self||view.rev;
+ if(rev&&x&&!S.prog[x.id].taught){S.prog[x.id].taught=true;save();}
+ let h=topbar()+`<div class="screen-title">📇 부수 익히기</div>
+  <p class="screen-sub">갈래별로 카드를 넘기며 뜻·음을 익혀요. 변형 모양도 함께 나와요.</p>
+  <div class="flash-chips">${CATS.map(c=>`<button class="dict-tab ${c===cat?'on':''}" data-c="${c}">${c} ${catItems(c).length}</button>`).join('')}</div>`;
+ if(!x)h+=`<div class="center-note">항목이 없어요.</div>`;else{
+ h+=`<div class="flash-card" id="fc"><span class="flash-type">${cat}</span>
+  <div class="flash-hanja" style="font-size:${x.c.length>=4?42:66}px">${x.c}</div>
+  ${rev?`<div class="flash-reading">${x.t==='rad'?x.m+'('+x.s+')':(x.s||'')}</div>
+   ${x.t==='rad'&&x.v?`<div class="flash-mean">변형 모양 · <span class="serif" style="color:var(--seal);font-size:26px">${x.v}</span></div>`:''}
+   ${x.t==='combo'?`<div class="flash-mean">${x.m}(${x.s})</div><div class="flash-hint">${x.parts.map(p=>p+'('+(RADBY[p]?RADBY[p].m:'')+')').join(' + ')} · ${x.pr}</div>`:''}
+   ${x.t==='word'?`<div class="flash-mean">${x.m}</div><div class="flash-hint">짜임: ${x.st}</div>`:''}
+   ${x.t==='idiom'?`<div class="flash-mean">${x.m}</div><div class="flash-hint">속뜻: ${x.hid}</div>`:''}`
+  :`<div class="flash-tap">👆 탭하여 뜻·음 확인</div>`}</div>
+ <div class="flash-nav"><button class="btn ghost small navb" id="pv" ${idx===0?'disabled':''}>← 이전</button>
+  <div class="flash-count">${idx+1} / ${deck.length}</div>
+  <button class="btn ghost small navb" id="nx2" ${idx===deck.length-1?'disabled':''}>다음 →</button></div>
+ <div class="toggle-row"><div><div style="font-weight:700;font-size:14.5px">스스로 확인 모드</div>
+  <div style="font-size:12.5px;color:var(--ink-soft)">뜻·음을 가리고 떠올려 봐요</div></div>
+  <div class="switch ${view.self?'on':''}" id="sw"><span class="knob"></span></div></div>`;}
+ h+=`<button class="btn small" id="tq" style="margin-top:16px">이 갈래 문제 풀기 →</button>
+  <button class="btn ghost small" id="bh" style="margin-top:10px">← 홈으로</button>`;
+ app.innerHTML=h;
+ app.querySelectorAll('.flash-chips .dict-tab').forEach(b=>b.onclick=()=>go('learn',{cat:b.dataset.c,idx:0,self:view.self,rev:false}));
+ if(x){fc.onclick=()=>{if(view.self&&!view.rev)go('learn',{cat,idx,self:true,rev:true});};
+  if(pv)pv.onclick=()=>go('learn',{cat,idx:idx-1,self:view.self,rev:false});
+  if(nx2)nx2.onclick=()=>go('learn',{cat,idx:idx+1,self:view.self,rev:false});
+  sw.onclick=()=>go('learn',{cat,idx,self:!view.self,rev:false});}
+ tq.onclick=()=>start(cat);bh.onclick=()=>go('home');}
+
+/* 쓰기 연습 */
+function renderWrite(){
+ const deck=ITEMS.filter(x=>x.t==='rad'||x.t==='combo'),idx=Math.max(0,Math.min(view.idx||0,deck.length-1)),x=deck[idx];
+ app.innerHTML=topbar()+`<div class="screen-title">✍️ 한자 쓰기 연습</div>
+  <p class="screen-sub">시험 41~50번 대비예요. 뜻과 음을 보고 <b>종이에 직접 써 본 뒤</b> 탭해서 맞춰 보세요.</p>
+  <div class="write-card" id="wc">${view.rev?`<div class="write-ans">${x.c}</div>
+    <div class="write-prompt" style="font-size:19px;margin-top:14px">${x.t==='rad'?x.m+'('+x.s+')':x.m+'('+x.s+')'}</div>
+    ${x.t==='rad'&&x.v?`<div class="flash-hint">변형 모양: <span class="serif" style="font-size:22px;color:var(--seal)">${x.v}</span></div>`:''}`
+   :`<div class="write-prompt">${x.t==='rad'?x.m+'('+x.s+')':x.m+'('+x.s+')'}</div><div class="write-tap">👆 종이에 쓴 뒤 탭해서 확인</div>`}</div>
+  <div class="flash-nav"><button class="btn ghost small navb" id="pv" ${idx===0?'disabled':''}>← 이전</button>
+   <div class="flash-count">${idx+1} / ${deck.length}</div>
+   <button class="btn ghost small navb" id="nx2" ${idx===deck.length-1?'disabled':''}>다음 →</button></div>
+  ${view.rev?`<div class="row2" style="margin-top:14px">
+   <button class="btn green small" id="ok">맞았어요</button><button class="btn small" id="no">틀렸어요</button></div>`:''}
+  <button class="btn ghost small" id="bh" style="margin-top:12px">← 홈으로</button>`;
+ wc.onclick=()=>{if(!view.rev)go('write',{idx,rev:true});};
+ if(pv)pv.onclick=()=>go('write',{idx:idx-1,rev:false});
+ if(nx2)nx2.onclick=()=>go('write',{idx:idx+1,rev:false});
+ if(view.rev){ok.onclick=()=>{upd(x.id,true);save();go('write',{idx:Math.min(idx+1,deck.length-1),rev:false});};
+  no.onclick=()=>{upd(x.id,false);save();go('write',{idx:Math.min(idx+1,deck.length-1),rev:false});};}
+ bh.onclick=()=>go('home');}
+
+/* 부수표 보기 */
+function renderList(){
+ const cat=view.cat||'사람',items=catItems(cat);
+ app.innerHTML=topbar()+`<div class="screen-title">📖 부수표</div>
+  <p class="screen-sub">익힘 단계에 오른 항목은 초록색으로 표시돼요.</p>
+  <div class="flash-chips">${CATS.map(c=>`<button class="dict-tab ${c===cat?'on':''}" data-c="${c}">${c}</button>`).join('')}</div>
+  ${['결합','한자어','성어'].includes(cat)?
+   items.map(x=>`<div class="dict-item"><div class="dh">${x.c}</div><div style="flex:1;min-width:0">
+    <div class="dr">${x.t==='combo'?x.m+'('+x.s+') · '+x.pr:(x.s||x.st||'')}</div>
+    <div class="dm">${x.t==='combo'?x.parts.map(p=>p+'('+(RADBY[p]?RADBY[p].m:'')+')').join(' + '):x.m}</div>
+    ${x.t==='idiom'?`<div class="dm" style="font-size:12.5px;color:var(--ink-soft)">속뜻: ${x.hid}</div>`:''}
+    ${x.t==='word'?`<div class="dm" style="font-size:12.5px;color:var(--ink-soft)">짜임: ${x.st}</div>`:''}
+    <div class="mbar" style="margin-top:6px"><div class="m" style="width:${mastery(x.id)*100}%"></div></div></div></div>`).join('')
+   :`<div class="grid-rad">${items.map(x=>`<div class="rad-cell ${S.prog[x.id].box>=4?'mastered':''}">
+    <div class="rc">${x.c}</div><div class="rr">${x.m}(${x.s})</div>${x.v?`<div class="rv">→ ${x.v}</div>`:''}</div>`).join('')}</div>`}
+  <button class="btn ghost" id="bh" style="margin-top:16px">← 홈으로</button>`;
+ app.querySelectorAll('.flash-chips .dict-tab').forEach(b=>b.onclick=()=>go('list',{cat:b.dataset.c}));
+ bh.onclick=()=>go('home');}
+
+/* 진도 + 설정 */
+function renderScope(){
+ const prog=view.tab==='progress';
+ app.innerHTML=topbar()+`<div class="screen-title">${prog?'🗺️ 나의 진도':'⚙️ 설정'}</div>
+  <p class="screen-sub">${prog?'갈래별로 얼마나 익혔는지 볼 수 있어요.':'시험 범위에서 뺄 갈래가 있으면 꺼 두세요.'}</p>
+  ${CATS.map(c=>{const m=Math.round(catMastery(c)*100),on=S.scope.includes(c);
+   return prog?`<div class="lesson-card ${m>=80?'mastered':''}"><div class="num">${m>=80?'✓':catItems(c).length}</div>
+    <div class="info"><div class="lt">${c}</div><div class="lc">${catItems(c).length}개 항목 · ${m}% 익힘</div>
+    <div class="mbar"><div class="m" style="width:${m}%"></div></div></div>
+    <button class="go" data-c="${c}">연습</button></div>`
+   :`<div class="scope-unit ${on?'on':''}" data-c="${c}"><div class="uhead"><div class="cbx">${on?'✓':''}</div>
+    <div><div class="un">${c}</div><div class="us">${catItems(c).length}개 항목</div></div>
+    <div class="rn">${Math.round(catMastery(c)*100)}%</div></div></div>`;}).join('')}
+  ${prog?'':`<button class="btn green" id="sv" style="margin-top:16px">저장하고 홈으로</button>`}
+  <button class="btn ghost small" id="bh" style="margin-top:10px">← 홈으로</button>`;
+ if(prog)app.querySelectorAll('.go').forEach(b=>b.onclick=()=>start(b.dataset.c));
+ else{app.querySelectorAll('.scope-unit').forEach(el=>el.querySelector('.uhead').onclick=()=>{
+   const c=el.dataset.c;if(S.scope.includes(c)){S.scope=S.scope.filter(z=>z!==c);el.classList.remove('on');el.querySelector('.cbx').textContent='';}
+   else{S.scope.push(c);el.classList.add('on');el.querySelector('.cbx').textContent='✓';}});
+  sv.onclick=async()=>{if(!S.scope.length){toast('한 갈래 이상 골라 주세요');return;}await save();toast('저장했어요');go('home');};}
+ bh.onclick=()=>go('home');}
+
+/* 기록 달력 */
+function renderRecords(){
+ const p=(view.ym||(new Date().getFullYear()+'-'+(new Date().getMonth()+1))).split('-'),y=+p[0],m=+p[1];
+ const sd=new Date(y,m-1,1).getDay(),days=new Date(y,m,0).getDate(),t=todayStr();
+ const mc=Object.keys(S.history).filter(k=>{const q=k.split('-');return +q[0]===y&&+q[1]===m;}).length;
+ let cells='';for(let i=0;i<sd;i++)cells+='<div></div>';
+ for(let d=1;d<=days;d++){const k=y+'-'+m+'-'+d,h=S.history[k];let c='cal-day';
+  if(h&&h.goal)c+=' goal';else if(h)c+=' partial';if(k===t)c+=' today';
+  cells+=`<div class="${c}"><span class="dn">${d}</span>${h&&h.exam?'<span class="dm">試</span>':h&&h.goal?'<span class="dm">印</span>':''}</div>`;}
+ app.innerHTML=topbar()+`<div class="screen-title">🗓️ 학습 기록</div>
+  <p class="screen-sub">언제 공부했는지, 목표(2세션)를 채웠는지 한눈에 봐요.</p>
+  <div class="stat-row"><div class="stat"><div class="v">🔥${S.streak}</div><div class="l">현재 연속</div></div>
+   <div class="stat"><div class="v">${S.maxStreak||0}</div><div class="l">최장 연속</div></div>
+   <div class="stat"><div class="v">${mc}</div><div class="l">이번 달</div></div>
+   <div class="stat"><div class="v">${S.best||0}</div><div class="l">모의 최고</div></div></div>
+  <div class="cal-head"><button class="cal-nav" id="pm">‹</button><div class="cal-title">${y}년 ${m}월</div><button class="cal-nav" id="nm">›</button></div>
+  <div class="cal-grid">${['일','월','화','수','목','금','토'].map((w,i)=>`<div class="cal-dow ${i===0?'sun':''}">${w}</div>`).join('')}${cells}</div>
+  <div class="cal-legend"><span><i class="lg goal"></i>목표 달성</span><span><i class="lg partial"></i>1세션</span><span><i class="lg today"></i>오늘</span></div>
+  <button class="btn ghost" id="bh">← 홈으로</button>`;
+ pm.onclick=()=>{let mm=m-1,yy=y;if(mm<1){mm=12;yy--;}go('records',{ym:yy+'-'+mm});};
+ nm.onclick=()=>{let mm=m+1,yy=y;if(mm>12){mm=1;yy++;}go('records',{ym:yy+'-'+mm});};
+ bh.onclick=()=>go('home');}
+
+/* 안내 */
+function renderGuide(first){
+ app.innerHTML=(first?'':topbar())+`<div class="ob" style="padding-top:${first?'20':'6'}px">
+  <div style="text-align:center;font-size:40px">🧭</div>
+  <div class="screen-title" style="justify-content:center">한문 부수 수행평가 대비</div>
+  <p class="screen-sub" style="text-align:center">시험에 나오는 형식 그대로 연습해요. 하루 10분이면 충분합니다.</p>
+  <div class="guide-step"><div class="gn">1</div><div class="gc"><b>부수 익히기</b>로 뜻·음과 <b>변형 모양</b>을 눈에 익혀요. (사람·동물·자연·먹거리·색깔 갈래별)</div></div>
+  <div class="guide-step"><div class="gn">2</div><div class="gc"><b>오늘의 문제</b>를 1교시 → 2교시 풀어요. 뜻과 음, 부수 결합(休=人+木), 변형↔원래, 성어까지 시험 유형 그대로 나와요.</div></div>
+  <div class="guide-step"><div class="gn">3</div><div class="gc"><b>쓰기 연습</b>은 41~50번 대비예요. 뜻·음만 보고 <b>종이에 직접 쓴 뒤</b> 탭해서 확인해요.</div></div>
+  <div class="guide-step"><div class="gn">4</div><div class="gc">시험 전날엔 <b>실전 모의고사 25문항</b>으로 점검! 맞은 갯수와 점수가 나와요.</div></div>
+  <div class="guide-note"><b>난이도</b> 처음엔 <b>쉬움</b>(보기 3개·갈래 힌트)으로 시작하고, 익숙해지면 <b>보통</b> → <b>어려움</b>(보기 5개·비슷한 보기·힌트 없음)으로 올려요. 홈에서 언제든 바꿀 수 있어요.</div>
+  <div class="guide-note"><b>시험 범위</b> 부수 일람표 127자 · 결합 한자 15자(회의·형성) · 한자어 14개(수식/병렬/주술/술목) · 성어 8개(풀이·속뜻)</div>
+  <button class="btn" id="gd">${first?'좋아요, 시작할게요':'알겠어요'}</button>
+  ${first?'':'<button class="btn ghost small" id="gb" style="margin-top:10px">← 홈으로</button>'}</div>`;
+ gd.onclick=async()=>{S.onboarded=true;S.seenGuide=true;await save();go('home');};
+ const gb=document.getElementById('gb');if(gb)gb.onclick=()=>go('home');}
+
+(async function(){await load();render();})();
+</script>
